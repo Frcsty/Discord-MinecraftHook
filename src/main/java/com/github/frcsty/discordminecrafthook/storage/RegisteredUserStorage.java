@@ -1,24 +1,26 @@
 package com.github.frcsty.discordminecrafthook.storage;
 
 import com.github.frcsty.discordminecrafthook.HookPlugin;
+import com.github.frcsty.discordminecrafthook.storage.database.ConnectionProvider;
+import com.github.frcsty.discordminecrafthook.storage.database.Statement;
 import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public final class RegisteredUserStorage {
 
-    @NotNull
-    private final Map<String, LinkedUser> storage = new HashMap<>();
+    @NotNull private final Map<String, LinkedUser> storage = new HashMap<>();
+    @Nullable private ConnectionProvider connectionProvider;
 
     /**
      * Set's a user to our HashMap using entered params,
@@ -50,8 +52,7 @@ public final class RegisteredUserStorage {
      * @param memberTag User's member tag
      * @return Linked user linked to the member tag
      */
-    @Nullable
-    public LinkedUser getLinkedUserByMemberTag(final String memberTag) {
+    @Nullable public LinkedUser getLinkedUserByMemberTag(final String memberTag) {
         return this.storage.get(memberTag);
     }
 
@@ -59,10 +60,9 @@ public final class RegisteredUserStorage {
      * Returns a {@link LinkedUser} instance if one exists or null
      *
      * @param minecraftID User's Minecraft {@link UUID}
-     * @return  Returns a {@link LinkedUser} instance or null
+     * @return Returns a {@link LinkedUser} instance or null
      */
-    @Nullable
-    public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
+    @Nullable public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
         LinkedUser result = null;
 
         for (final LinkedUser user : this.storage.values()) {
@@ -78,11 +78,10 @@ public final class RegisteredUserStorage {
     /**
      * Returns a {@link String} member tag belonging to a UUID of a {@link LinkedUser}
      *
-     * @param minecraftID   User's Minecraft {@link UUID}
-     * @return  Returns a member tag linked to the user
+     * @param minecraftID User's Minecraft {@link UUID}
+     * @return Returns a member tag linked to the user
      */
-    @Nullable
-    public String getLinkedUserMemberTagByUUID(final UUID minecraftID) {
+    @Nullable public String getLinkedUserMemberTagByUUID(final UUID minecraftID) {
         String result = null;
 
         for (final String memberTag : this.storage.keySet()) {
@@ -100,64 +99,110 @@ public final class RegisteredUserStorage {
      * Loads RegisteredUser data from our data storage
      *
      * @param plugin Our {@link HookPlugin} instance
-     * @throws IOException if the file cannot be created
      */
-    public void load(final HookPlugin plugin) throws IOException {
-        final File dataFile = new File(plugin.getDataFolder(), "registered-users.yml");
+    public void load(final HookPlugin plugin) {
+        final Logger logger = plugin.getLogger();
 
-        if (!dataFile.exists()) {
-            dataFile.createNewFile();
+        try {
+            this.connectionProvider = new ConnectionProvider(plugin);
+
+            this.connectionProvider.setupDatabase();
+        } catch (final Exception ex) {
+            logger.log(Level.WARNING, "Database connection was null, failed to initialize plugin!");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
 
-        final FileConfiguration dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
-        final ConfigurationSection usersSection = dataConfiguration.getConfigurationSection("users");
-        if (usersSection == null) return;
+        CompletableFuture.supplyAsync(() -> {
+            final Connection connection = this.connectionProvider.getConnection();
+            final String databaseName = this.connectionProvider.getDatabaseName();
 
-        for (final String key : usersSection.getKeys(false)) {
-            final ConfigurationSection userSection = usersSection.getConfigurationSection(key);
-            if (userSection == null) continue;
+            if (connection == null) {
+                logger.log(Level.WARNING, "Database connection was null, failed to initialize data!");
+                return null;
+            }
 
-            final UUID identifier = UUID.fromString(key);
-            final String usedCode = userSection.getString("usedCode");
-            final long linkedDate = userSection.getLong("linkedDate");
+            try {
+                final ResultSet result = connection.prepareStatement(
+                        String.format(
+                                Statement.SELECT_ALL_FROM_TABLE,
+                                databaseName, Statement.REGISTERED_USERS_TABLE
+                        )
+                ).executeQuery();
 
-            final String memberTag = userSection.getString("memberTag");
+                while (result.next()) {
+                    final UUID minecraftID = UUID.fromString(result.getString("uuid"));
+                    final String memberTag = result.getString("memberTag");
+                    final String codeUsed = result.getString("codeUsed");
+                    final long linkedDate = result.getLong("linkedDate");
 
-            final LinkedUser linkedUser = new LinkedUser(
-                    identifier,
-                    usedCode,
-                    linkedDate
-            );
+                    final LinkedUser linkedUser = new LinkedUser(
+                            minecraftID,
+                            codeUsed,
+                            linkedDate
+                    );
 
-            this.storage.put(memberTag, linkedUser);
-        }
+                    this.storage.put(memberTag, linkedUser);
+                }
+
+                connection.close();
+            } catch (final SQLException ex) {
+                logger.log(Level.WARNING, "", ex);
+            }
+            return null;
+        }).exceptionally(ex -> {
+            logger.log(Level.WARNING, "An exception has occurred while initializing data!", ex);
+            return null;
+        });
     }
 
     /**
      * Saves RegisteredUser data into our data storage
      *
      * @param plugin Our {@link HookPlugin} instance
-     * @throws IOException if the file cannot be created
      */
-    public void save(final HookPlugin plugin) throws IOException {
-        final File dataFile = new File(plugin.getDataFolder(), "registered-users.yml");
-        if (this.storage.isEmpty()) return;
-        if (!dataFile.exists()) dataFile.createNewFile();
+    public void save(final HookPlugin plugin) {
+        final Logger logger = plugin.getLogger();
 
-        final FileConfiguration dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
-        ConfigurationSection usersSection = dataConfiguration.getConfigurationSection("users");
-        if (usersSection == null) usersSection = dataConfiguration.createSection("users");
+        try {
+            this.connectionProvider = new ConnectionProvider(plugin);
 
-        for (final String memberTag : this.storage.keySet()) {
-            final LinkedUser linkedUser = this.storage.get(memberTag);
-
-            final ConfigurationSection userSection = usersSection.createSection(linkedUser.getMinecraftIdentifier().toString());
-            userSection.set("memberTag", memberTag);
-            userSection.set("usedCode", linkedUser.getUsedCode());
-            userSection.set("linkedDate", linkedUser.getLinkedDate());
+            this.connectionProvider.setupDatabase();
+        } catch (final Exception ex) {
+            logger.log(Level.WARNING, "Database connection was null, failed to save user data!");
+            return;
         }
 
-        dataConfiguration.save(dataFile);
+        CompletableFuture.supplyAsync(() -> {
+            final Connection connection = this.connectionProvider.getConnection();
+            final String databaseName = this.connectionProvider.getDatabaseName();
+
+            if (connection == null) {
+                logger.log(Level.WARNING, "Database connection was null, failed to save data!");
+                return null;
+            }
+
+            try {
+                for (final String memberTag : this.storage.keySet()) {
+                    final LinkedUser linkedUser = this.storage.get(memberTag);
+
+                    connection.prepareStatement(
+                            String.format(
+                                    Statement.UPDATE_PLAYER_DATA,
+                                    databaseName, Statement.REGISTERED_USERS_TABLE,
+                                    linkedUser.getMinecraftIdentifier(), memberTag, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
+                            )
+                    ).executeUpdate();
+                }
+
+                connection.close();
+            } catch (final SQLException ex) {
+                logger.log(Level.WARNING, "", ex);
+            }
+            return null;
+        }).exceptionally(ex -> {
+            logger.log(Level.WARNING, "An exception has occurred while saving data!", ex);
+            return null;
+        });
     }
 }

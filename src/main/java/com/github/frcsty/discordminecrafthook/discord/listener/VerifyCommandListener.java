@@ -12,18 +12,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public final class VerifyCommandListener extends ListenerAdapter {
 
-    @NotNull
-    private final ConfigStorage configStorage;
-    @NotNull
-    private final RequestCache requestCache;
-    @NotNull
-    private final RegisteredUserStorage registeredUserStorage;
+    @NotNull private final HookPlugin plugin;
+    @NotNull private final ConfigStorage configStorage;
+    @NotNull private final RequestCache requestCache;
+    @NotNull private final RegisteredUserStorage registeredUserStorage;
 
     public VerifyCommandListener(@NotNull final HookPlugin plugin) {
+        this.plugin = plugin;
         this.configStorage = plugin.getConfigStorage();
         this.requestCache = plugin.getRequestCache();
         this.registeredUserStorage = plugin.getRegisteredUserStorage();
@@ -69,9 +70,12 @@ public final class VerifyCommandListener extends ListenerAdapter {
         }
 
         final OfflinePlayer offlineMinecraftPlayer = Bukkit.getOfflinePlayer(minecraftUserIdentifier);
-        final Role desiredRole = event.getJDA().getRoleById(this.configStorage.getConfigString("settings.discord-role"));
+        final Role desiredRole = getRoleByLongId(guild, Long.valueOf(this.configStorage.getConfigString("settings.discord-role")));
 
-        guild.getRoles().forEach(it -> System.out.println(it.getName()));
+        if (desiredRole == null) {
+            plugin.getLogger().log(Level.WARNING, "Specified role was null, please double check config settings!");
+            return;
+        }
         guild.getController().addRolesToMember(member, desiredRole).complete();
 
         channel.sendMessage(
@@ -82,6 +86,27 @@ public final class VerifyCommandListener extends ListenerAdapter {
         ).queue();
 
         this.registeredUserStorage.setLinkedUser(member.getUser().getAsTag(), minecraftUserIdentifier, enteredCode);
+    }
+
+    /**
+     * Finds and retrieve a role by a given {@link Long} roleID or null
+     *
+     * @param guild     Our guild instance
+     * @param roleId    Our desired role id
+     * @return  Returns a {@link Role} matching our id, or null
+     */
+    private Role getRoleByLongId(final Guild guild, final long roleId) {
+        final List<Role> roles = guild.getRoles();
+        Role result = null;
+
+        for (final Role role : roles) {
+            if (role.getIdLong() == roleId) {
+                result = role;
+                break;
+            }
+        }
+
+        return result;
     }
 
 }

@@ -11,7 +11,6 @@ import org.bukkit.Warning;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -22,17 +21,13 @@ public final class HookPlugin extends JavaPlugin {
 
     @NotNull private final RegisteredUserStorage registeredUserStorage = new RegisteredUserStorage();
 
-    @Override public void onEnable() {
+    @Override
+    public void onEnable() {
         saveDefaultConfig();
 
         CompletableFuture.supplyAsync(() -> {
             this.configStorage.load(this);
-
-            try {
-                this.registeredUserStorage.load(this);
-            } catch (final IOException ex) {
-                ex.printStackTrace();
-            }
+            this.registeredUserStorage.load(this);
 
             registerCommands(
                     new VerifyCommand(this)
@@ -47,14 +42,11 @@ public final class HookPlugin extends JavaPlugin {
         });
     }
 
-    @Override public void onDisable() {
+    @Override
+    public void onDisable() {
         reloadConfig();
 
-        try {
-            this.registeredUserStorage.save(this);
-        } catch (final IOException ex) {
-            ex.printStackTrace();
-        }
+        this.registeredUserStorage.save(this);
     }
 
     /**

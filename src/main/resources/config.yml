@@ -1,0 +1,15 @@
+messages:
+  generated-code: "&7Use this code in discord using &6-verify {generated-code}&7 to verify! (The code will expire after 5 minutes!)"
+  code-tooltip: "&7&o((Click To Copy Code))"
+  code-expired: "&7Your code &6{expired-code} &7has expired! Use &6/verify &7if you wish to generate a new one!"
+  account-already-linked: "&7Your account is already linked to the user &6{member-tag}&7! If you think this is a mistake, contact an administrator!"
+  # Bot messages
+  invalid-params: "Specified command has missing parameters! Please use -verify <code>"
+  invalid-code: "The code which you have entered does not match any generated codes and is invalid!"
+  user-successfully-linked: "You have successfully linked your Discord Profile to the Minecraft Username: {minecraft-username}"
+  already-linked: "You can not link again, as your account is already linked!"
+
+settings:
+  code-size: 7 # Max 30
+  bot-token: NzM2OTE4OTUzMDI0MjkwODk3.Xx1zQQ.KHObn48JBj-NLgMdanmT6bUfVrw
+  discord-role: 773211925327904788

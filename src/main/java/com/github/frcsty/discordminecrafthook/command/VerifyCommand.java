@@ -4,6 +4,8 @@ import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.cache.CodeBuilder;
 import com.github.frcsty.discordminecrafthook.cache.RequestCache;
 import com.github.frcsty.discordminecrafthook.config.ConfigStorage;
+import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
+import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
 import com.github.frcsty.discordminecrafthook.util.Message;
 import com.github.frcsty.discordminecrafthook.util.Replace;
 import me.mattstudios.mf.annotations.Command;
@@ -18,10 +20,12 @@ import java.util.UUID;
 @Command("verify")
 public final class VerifyCommand extends CommandBase {
 
+    @NotNull private final RegisteredUserStorage registeredUserStorage;
     @NotNull private final ConfigStorage configStorage;
     @NotNull private final RequestCache cache;
 
     public VerifyCommand(@NotNull final HookPlugin plugin) {
+        this.registeredUserStorage = plugin.getRegisteredUserStorage();
         this.configStorage = plugin.getConfigStorage();
         this.cache = plugin.getRequestCache();
     }
@@ -30,6 +34,17 @@ public final class VerifyCommand extends CommandBase {
     @Permission("discordhook.command.verify")
     public void onCommand(final Player player) {
         final UUID identifier = player.getUniqueId();
+        final LinkedUser linkedUser = this.registeredUserStorage.getLinkedUserByMinecraftUUID(identifier);
+
+        if (linkedUser != null) {
+            Message.send(player, Replace.replaceString(
+                    this.configStorage.getConfigString("messages.account-already-linked"),
+                    "{member-tag}", this.registeredUserStorage.getLinkedUserMemberTagByUUID(identifier)
+                    )
+            );
+            return;
+        }
+
         this.cache.invalidateUserCodes(identifier);
 
         final String generatedCode = CodeBuilder.getRandomCode(
@@ -39,8 +54,10 @@ public final class VerifyCommand extends CommandBase {
         this.cache.addCodeToCache(generatedCode, identifier);
         Message.send(player, Replace.replaceString(
                         this.configStorage.getConfigString("messages.generated-code"),
-                "{generated-code}", generatedCode
-        ));
+                "{generated-code}", generatedCode),
+                this.configStorage.getConfigString("messages.code-tooltip"),
+                generatedCode
+        );
     }
 
 }

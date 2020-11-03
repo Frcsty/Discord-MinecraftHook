@@ -21,7 +21,6 @@ public final class DiscordSetup {
         this.configStorage = plugin.getConfigStorage();
         final JDA jda = startBot();
 
-        if (jda == null) return;
         jda.addEventListener(new VerifyCommandListener(plugin));
     }
 
@@ -36,8 +35,10 @@ public final class DiscordSetup {
         try {
             jda = new JDABuilder().setToken(this.configStorage.getConfigString("settings.bot-token"))
                     .setStatus(OnlineStatus.ONLINE)
-                    .build().awaitReady();
-        } catch (final LoginException | InterruptedException ex) {
+                    .build();
+
+            if (jda == null) throw new RuntimeException("JDA Provider was null! Failed to proceed.");
+        } catch (final LoginException ex) {
             this.plugin.getLogger().log(Level.SEVERE, "Discord bot was unable to start! Please verify the bot token is correct.");
             this.plugin.getServer().getPluginManager().disablePlugin(plugin);
         }

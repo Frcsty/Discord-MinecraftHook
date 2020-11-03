@@ -26,7 +26,7 @@ public final class RequestCache {
         this.requestCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(300, TimeUnit.SECONDS)
                 .maximumSize(500)
-                //.removalListener(new RequestRemovalListener(configStorage))
+                .removalListener(new RequestRemovalListener(configStorage))
                 .build();
     }
 

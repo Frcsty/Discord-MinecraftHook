@@ -26,7 +26,7 @@ public final class RegisteredUserStorage {
      * Set's a user to our HashMap using entered params,
      * uses {@link System#currentTimeMillis()} as registered date
      *
-     * @param memberID   User member ID
+     * @param memberID    User member ID
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      */
@@ -37,7 +37,7 @@ public final class RegisteredUserStorage {
     /**
      * Set's a user to out HashMap using entered params
      *
-     * @param memberID   User member ID
+     * @param memberID    User member ID
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      * @param linkedDate  The date the user linked
@@ -52,7 +52,8 @@ public final class RegisteredUserStorage {
      * @param memberID User's member tag
      * @return Linked user linked to the member tag
      */
-    @Nullable public LinkedUser getLinkedUserByMemberTag(final long memberID) {
+    @Nullable
+    public LinkedUser getLinkedUserByMemberTag(final long memberID) {
         return this.storage.get(memberID);
     }
 
@@ -62,7 +63,8 @@ public final class RegisteredUserStorage {
      * @param minecraftID User's Minecraft {@link UUID}
      * @return Returns a {@link LinkedUser} instance or null
      */
-    @Nullable public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
+    @Nullable
+    public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
         LinkedUser result = null;
 
         for (final LinkedUser user : this.storage.values()) {
@@ -134,13 +136,13 @@ public final class RegisteredUserStorage {
                     final UUID minecraftID = UUID.fromString(result.getString("uuid"));
                     final String minecraftUsername = result.getString("minecraftUsername");
                     final long memberID = result.getLong("memberTag");
-                    final String codeUsed = result.getString("codeUsed");
+                    final String usedCode = result.getString("usedCode");
                     final long linkedDate = result.getLong("linkedDate");
 
                     final LinkedUser linkedUser = new LinkedUser(
                             minecraftID,
                             minecraftUsername,
-                            codeUsed,
+                            usedCode,
                             linkedDate
                     );
 
@@ -188,13 +190,7 @@ public final class RegisteredUserStorage {
                 for (final long memberID : this.storage.keySet()) {
                     final LinkedUser linkedUser = this.storage.get(memberID);
 
-                    connection.prepareStatement(
-                            String.format(
-                                    Statement.UPDATE_PLAYER_DATA,
-                                    databaseName, Statement.REGISTERED_USERS_TABLE,
-                                    linkedUser.getMinecraftIdentifier(), linkedUser.getMinecraftUsername(), memberID, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
-                            )
-                    ).executeUpdate();
+                    saveUser(plugin, linkedUser, memberID);
                 }
 
                 connection.close();
@@ -204,6 +200,47 @@ public final class RegisteredUserStorage {
             return null;
         }).exceptionally(ex -> {
             logger.log(Level.WARNING, "An exception has occurred while saving data!", ex);
+            return null;
+        });
+    }
+
+    /**
+     * Saves the provided {@link LinkedUser} to the database
+     *
+     * @param plugin        Our {@link HookPlugin} instance
+     * @param linkedUser    Linked user we wish to save the data for
+     * @param memberID      Linked user Discord Identifier
+     */
+    public void saveUser(final HookPlugin plugin, final LinkedUser linkedUser, final long memberID) {
+        if (this.connectionProvider == null) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save data for user '" + linkedUser.getMinecraftIdentifier() + "' as the connection provider was null!");
+            return;
+        }
+        final Connection connection = this.connectionProvider.getConnection();
+
+        if (connection == null) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save data for user '" + linkedUser.getMinecraftIdentifier() + "' as the connection was null!");
+            return;
+        }
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                connection.prepareStatement(
+                        String.format(
+                                Statement.UPDATE_PLAYER_DATA,
+                                this.connectionProvider.getDatabaseName(), Statement.REGISTERED_USERS_TABLE,
+                                linkedUser.getMinecraftIdentifier(), linkedUser.getMinecraftUsername(), memberID, linkedUser.getUsedCode(), linkedUser.getLinkedDate(),
+                                linkedUser.getMinecraftUsername(), memberID, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
+                        )
+                ).executeUpdate();
+
+                connection.close();
+            } catch (final SQLException ex) {
+                plugin.getLogger().log(Level.WARNING, "An exception occurred while saving data for user '" + linkedUser.getMinecraftIdentifier() + "'!", ex);
+            }
+            return null;
+        }).exceptionally(ex -> {
+            ex.printStackTrace();
             return null;
         });
     }

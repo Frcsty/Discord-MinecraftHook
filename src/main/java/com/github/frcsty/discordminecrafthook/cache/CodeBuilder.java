@@ -1,5 +1,6 @@
 package com.github.frcsty.discordminecrafthook.cache;
 
+import java.util.Locale;
 import java.util.SplittableRandom;
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -8,10 +9,10 @@ public final class CodeBuilder {
     private static final SplittableRandom RANDOM = new SplittableRandom();
 
     private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String LOWERCASE_ALPHABET = ALPHABET.toLowerCase(Locale.ROOT);
     private static final String NUMERAL = "1234567890";
-    private static final String SYMBOL = "/*-+,$#%&!";
 
-    private static final String ALPHANUM = ALPHABET + NUMERAL + SYMBOL;
+    private static final String ALPHANUM = ALPHABET + NUMERAL + LOWERCASE_ALPHABET;
 
     /**
      * Constructs and returns a random String code

@@ -4,12 +4,15 @@ import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.cache.RequestCache;
 import com.github.frcsty.discordminecrafthook.config.ConfigStorage;
 import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
+import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
+import com.github.frcsty.discordminecrafthook.util.Message;
 import com.github.frcsty.discordminecrafthook.util.Replace;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -85,7 +88,16 @@ public final class VerifyCommandListener extends ListenerAdapter {
                 )
         ).queue();
 
+        if (offlineMinecraftPlayer.isOnline()) {
+            final Player onlineMinecraftPlayer = (Player) offlineMinecraftPlayer;
+            Message.send(onlineMinecraftPlayer, Replace.replaceString(
+                    this.configStorage.getConfigString("messages.user-successfully-linked-mc"),
+                    "{discord-username}", member.getUser().getAsTag()
+            ));
+        }
+
         this.registeredUserStorage.setLinkedUser(member.getUser().getIdLong(), minecraftUserIdentifier, enteredCode);
+        this.registeredUserStorage.saveUser(plugin, new LinkedUser(minecraftUserIdentifier, enteredCode, System.currentTimeMillis()), member.getUser().getIdLong());
     }
 
     /**

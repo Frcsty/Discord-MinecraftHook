@@ -43,7 +43,7 @@ public final class VerifyCommandListener extends ListenerAdapter {
         if (author.isBot()) return;
 
         final Member member = event.getMember();
-        if (this.registeredUserStorage.getLinkedUserByMemberTag(member.getUser().getAsTag()) != null) {
+        if (this.registeredUserStorage.getLinkedUserByMemberTag(member.getUser().getIdLong()) != null) {
             channel.sendMessage(
                     this.configStorage.getConfigString("messages.already-linked")
             ).queue();
@@ -85,7 +85,7 @@ public final class VerifyCommandListener extends ListenerAdapter {
                 )
         ).queue();
 
-        this.registeredUserStorage.setLinkedUser(member.getUser().getAsTag(), minecraftUserIdentifier, enteredCode);
+        this.registeredUserStorage.setLinkedUser(member.getUser().getIdLong(), minecraftUserIdentifier, enteredCode);
     }
 
     /**

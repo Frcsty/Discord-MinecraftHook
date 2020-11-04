@@ -19,41 +19,41 @@ import java.util.logging.Logger;
 
 public final class RegisteredUserStorage {
 
-    @NotNull private final Map<String, LinkedUser> storage = new HashMap<>();
+    @NotNull private final Map<Long, LinkedUser> storage = new HashMap<>();
     @Nullable private ConnectionProvider connectionProvider;
 
     /**
      * Set's a user to our HashMap using entered params,
      * uses {@link System#currentTimeMillis()} as registered date
      *
-     * @param memberTag   User member tag
+     * @param memberID   User member ID
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      */
-    public void setLinkedUser(final String memberTag, final UUID minecraftID, final String usedCode) {
-        this.storage.put(memberTag, new LinkedUser(minecraftID, usedCode, System.currentTimeMillis()));
+    public void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode) {
+        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, System.currentTimeMillis()));
     }
 
     /**
      * Set's a user to out HashMap using entered params
      *
-     * @param memberTag   User member tag
+     * @param memberID   User member ID
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      * @param linkedDate  The date the user linked
      */
-    private void setLinkedUser(final String memberTag, final UUID minecraftID, final String usedCode, final long linkedDate) {
-        this.storage.put(memberTag, new LinkedUser(minecraftID, usedCode, linkedDate));
+    private void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode, final long linkedDate) {
+        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, linkedDate));
     }
 
     /**
      * Returns a {@link LinkedUser} instance if one exists or null
      *
-     * @param memberTag User's member tag
+     * @param memberID User's member tag
      * @return Linked user linked to the member tag
      */
-    @Nullable public LinkedUser getLinkedUserByMemberTag(final String memberTag) {
-        return this.storage.get(memberTag);
+    @Nullable public LinkedUser getLinkedUserByMemberTag(final long memberID) {
+        return this.storage.get(memberID);
     }
 
     /**
@@ -81,14 +81,14 @@ public final class RegisteredUserStorage {
      * @param minecraftID User's Minecraft {@link UUID}
      * @return Returns a member tag linked to the user
      */
-    @Nullable public String getLinkedUserMemberTagByUUID(final UUID minecraftID) {
-        String result = null;
+    public long getLinkedUserMemberTagByUUID(final UUID minecraftID) {
+        long result = 0;
 
-        for (final String memberTag : this.storage.keySet()) {
-            final LinkedUser linkedUser = this.storage.get(memberTag);
+        for (final long memberID : this.storage.keySet()) {
+            final LinkedUser linkedUser = this.storage.get(memberID);
 
             if (linkedUser.getMinecraftIdentifier().equals(minecraftID)) {
-                result = memberTag;
+                result = memberID;
                 break;
             }
         }
@@ -133,7 +133,7 @@ public final class RegisteredUserStorage {
                 while (result.next()) {
                     final UUID minecraftID = UUID.fromString(result.getString("uuid"));
                     final String minecraftUsername = result.getString("minecraftUsername");
-                    final String memberTag = result.getString("memberTag");
+                    final long memberID = result.getLong("memberTag");
                     final String codeUsed = result.getString("codeUsed");
                     final long linkedDate = result.getLong("linkedDate");
 
@@ -144,7 +144,7 @@ public final class RegisteredUserStorage {
                             linkedDate
                     );
 
-                    this.storage.put(memberTag, linkedUser);
+                    this.storage.put(memberID, linkedUser);
                 }
 
                 connection.close();
@@ -185,14 +185,14 @@ public final class RegisteredUserStorage {
             }
 
             try {
-                for (final String memberTag : this.storage.keySet()) {
-                    final LinkedUser linkedUser = this.storage.get(memberTag);
+                for (final long memberID : this.storage.keySet()) {
+                    final LinkedUser linkedUser = this.storage.get(memberID);
 
                     connection.prepareStatement(
                             String.format(
                                     Statement.UPDATE_PLAYER_DATA,
                                     databaseName, Statement.REGISTERED_USERS_TABLE,
-                                    linkedUser.getMinecraftIdentifier(), linkedUser.getMinecraftUsername(), memberTag, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
+                                    linkedUser.getMinecraftIdentifier(), linkedUser.getMinecraftUsername(), memberID, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
                             )
                     ).executeUpdate();
                 }

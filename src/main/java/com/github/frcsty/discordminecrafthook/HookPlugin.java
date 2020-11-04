@@ -11,6 +11,8 @@ import org.bukkit.Warning;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -24,6 +26,10 @@ public final class HookPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+
+        saveResources(
+                "hikari.properties"
+        );
 
         CompletableFuture.supplyAsync(() -> {
             this.configStorage.load(this);
@@ -88,4 +94,14 @@ public final class HookPlugin extends JavaPlugin {
         manager.register(commands);
     }
 
+    /**
+     * Saves resources, without outputting and "already exists" messages into console
+     *
+     * @param resources Desired resources path's to be saved
+     */
+    private void saveResources(final String... resources) {
+        Arrays.stream(resources).forEach(resource -> {
+            if (!new File(getDataFolder(), resource).exists()) saveResource(resource, false);
+        });
+    }
 }

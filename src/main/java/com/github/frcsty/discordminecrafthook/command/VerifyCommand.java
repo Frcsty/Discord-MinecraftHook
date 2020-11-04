@@ -39,7 +39,7 @@ public final class VerifyCommand extends CommandBase {
         if (linkedUser != null) {
             Message.send(player, Replace.replaceString(
                     this.configStorage.getConfigString("messages.account-already-linked"),
-                    "{member-tag}", this.registeredUserStorage.getLinkedUserMemberTagByUUID(identifier)
+                    "{member-tag}", String.valueOf(this.registeredUserStorage.getLinkedUserMemberTagByUUID(identifier))
                     )
             );
             return;

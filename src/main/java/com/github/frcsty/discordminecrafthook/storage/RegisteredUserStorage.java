@@ -132,12 +132,14 @@ public final class RegisteredUserStorage {
 
                 while (result.next()) {
                     final UUID minecraftID = UUID.fromString(result.getString("uuid"));
+                    final String minecraftUsername = result.getString("minecraftUsername");
                     final String memberTag = result.getString("memberTag");
                     final String codeUsed = result.getString("codeUsed");
                     final long linkedDate = result.getLong("linkedDate");
 
                     final LinkedUser linkedUser = new LinkedUser(
                             minecraftID,
+                            minecraftUsername,
                             codeUsed,
                             linkedDate
                     );
@@ -190,7 +192,7 @@ public final class RegisteredUserStorage {
                             String.format(
                                     Statement.UPDATE_PLAYER_DATA,
                                     databaseName, Statement.REGISTERED_USERS_TABLE,
-                                    linkedUser.getMinecraftIdentifier(), memberTag, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
+                                    linkedUser.getMinecraftIdentifier(), linkedUser.getMinecraftUsername(), memberTag, linkedUser.getUsedCode(), linkedUser.getLinkedDate()
                             )
                     ).executeUpdate();
                 }

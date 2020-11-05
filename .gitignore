@@ -1,6 +1,5 @@
 .idea/
 .gradle/
-build/
 out/
 gradle/wrapper
 gradlew

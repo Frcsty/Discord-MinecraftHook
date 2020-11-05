@@ -2,4 +2,5 @@ name: Discord-MinecraftHook
 version: @version@
 main: com.github.frcsty.discordminecrafthook.HookPlugin
 api-version: 1.13
+author: Frcsty
 depend: ["PlaceholderAPI"]

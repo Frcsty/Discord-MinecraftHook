@@ -6,6 +6,7 @@ public final class Statement {
 
     @NotNull public static final String REGISTERED_USERS_TABLE = "registered_users";
 
+    @NotNull public static final String REMOVE_PLAYER_DATA = "DELETE FROM `%s`.`%s` WHERE uuid='%s'";
     @NotNull public static final String SELECT_ALL_FROM_TABLE = "SELECT * FROM `%s`.`%s`";
     @NotNull public static final String UPDATE_PLAYER_DATA = "INSERT INTO `%s`.`%s` (uuid, minecraftUsername, memberTag, usedCode, linkedDate) VALUES ('%s', '%s', '%s', '%s', %s) ON DUPLICATE KEY UPDATE minecraftUsername='%s', memberTag='%s', usedCode='%s', linkedDate=%s;";
     @NotNull static final String SETUP_DATABASE = "CREATE DATABASE IF NOT EXISTS `%s`;";

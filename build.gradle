@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.frcsty.discord-minecrafthook"
-version = "1.0.0-Alpha"
+version = "1.0.1"
 
 repositories {
 	mavenCentral()
@@ -25,6 +25,7 @@ dependencies {
 
 	implementation "com.zaxxer:HikariCP:3.4.5"
 
+	compileOnly "net.luckperms:api:5.2"
 	compileOnly "me.clip:placeholderapi:2.10.9"
 	compileOnly "com.destroystokyo.paper:paper-api:1.16.3-R0.1-SNAPSHOT"
 }
@@ -32,9 +33,10 @@ dependencies {
 shadowJar {
 	archiveFileName.set("DiscordHook-${project.version}.jar")
 
-	relocate "net.dv8tion.jda", "${project.group}.jda"
-	relocate "com.zaxxer.hikari", "${project.group}.hikari"
+	relocate "net.dv8tion.jda", "${project.group}.library.jda"
+	relocate "com.zaxxer.hikari", "${project.group}.library.hikari"
 	relocate "me.mattstudios.mf", "${project.group}.library.utils"
+	relocate "me.mattstudios.mfmsg", "${project.group}.library.msg"
 }
 
 processResources {

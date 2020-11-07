@@ -4,15 +4,14 @@ import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.storage.database.ConnectionProvider;
 import com.github.frcsty.discordminecrafthook.storage.database.Statement;
 import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,8 +29,8 @@ public final class RegisteredUserStorage {
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      */
-    public void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode) {
-        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, System.currentTimeMillis()));
+    public void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode, final long discordIdentifier) {
+        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, System.currentTimeMillis(), discordIdentifier));
     }
 
     /**
@@ -41,9 +40,10 @@ public final class RegisteredUserStorage {
      * @param minecraftID Minecraft UUID from linked user
      * @param usedCode    The code used to link
      * @param linkedDate  The date the user linked
+     * @param discordIdentifier The users discord ID
      */
-    private void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode, final long linkedDate) {
-        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, linkedDate));
+    private void setLinkedUser(final long memberID, final UUID minecraftID, final String usedCode, final long linkedDate, final long discordIdentifier) {
+        this.storage.put(memberID, new LinkedUser(minecraftID, usedCode, linkedDate, discordIdentifier));
     }
 
     /**
@@ -52,8 +52,7 @@ public final class RegisteredUserStorage {
      * @param memberID User's member tag
      * @return Linked user linked to the member tag
      */
-    @Nullable
-    public LinkedUser getLinkedUserByMemberTag(final long memberID) {
+    @Nullable public LinkedUser getLinkedUserByMemberTag(final long memberID) {
         return this.storage.get(memberID);
     }
 
@@ -63,8 +62,7 @@ public final class RegisteredUserStorage {
      * @param minecraftID User's Minecraft {@link UUID}
      * @return Returns a {@link LinkedUser} instance or null
      */
-    @Nullable
-    public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
+    @Nullable public LinkedUser getLinkedUserByMinecraftUUID(final UUID minecraftID) {
         LinkedUser result = null;
 
         for (final LinkedUser user : this.storage.values()) {
@@ -143,7 +141,8 @@ public final class RegisteredUserStorage {
                             minecraftID,
                             minecraftUsername,
                             usedCode,
-                            linkedDate
+                            linkedDate,
+                            memberID
                     );
 
                     this.storage.put(memberID, linkedUser);
@@ -207,9 +206,9 @@ public final class RegisteredUserStorage {
     /**
      * Saves the provided {@link LinkedUser} to the database
      *
-     * @param plugin        Our {@link HookPlugin} instance
-     * @param linkedUser    Linked user we wish to save the data for
-     * @param memberID      Linked user Discord Identifier
+     * @param plugin     Our {@link HookPlugin} instance
+     * @param linkedUser Linked user we wish to save the data for
+     * @param memberID   Linked user Discord Identifier
      */
     public void saveUser(final HookPlugin plugin, final LinkedUser linkedUser, final long memberID) {
         if (this.connectionProvider == null) {
@@ -243,5 +242,73 @@ public final class RegisteredUserStorage {
             ex.printStackTrace();
             return null;
         });
+    }
+
+    /**
+     * @param plugin     Our {@link HookPlugin} instance
+     * @param linkedUser Linked user to be removed
+     */
+    public void invalidateUser(final HookPlugin plugin, final LinkedUser linkedUser) {
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                if (this.connectionProvider == null) {
+                    plugin.getLogger().log(Level.WARNING, "Failed to invalidate data for user '" + linkedUser.getMinecraftIdentifier() + "' as the connection provider was null!");
+                    return null;
+                }
+                final Connection connection = this.connectionProvider.getConnection();
+
+                if (connection == null) {
+                    plugin.getLogger().log(Level.WARNING, "Failed to invalidate data for user '" + linkedUser.getMinecraftIdentifier() + "' as the connection was null!");
+                    return null;
+                }
+
+                connection.prepareStatement(
+                        String.format(
+                                Statement.REMOVE_PLAYER_DATA,
+                                this.connectionProvider.getDatabaseName(), Statement.REGISTERED_USERS_TABLE,
+                                linkedUser.getMinecraftIdentifier()
+                        )
+                ).executeUpdate();
+
+                connection.close();
+
+                removeUserByObject(linkedUser);
+            } catch (final SQLException ex) {
+                plugin.getLogger().log(Level.WARNING, "An exception occurred while removing data for user '" + linkedUser.getMinecraftIdentifier() + "'!", ex);
+            }
+            return null;
+        }).exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
+    }
+
+    /**
+     * Removes a matching user from the storage cache
+     *
+     * @param linkedUser The {@link LinkedUser} to be removed
+     */
+    private void removeUserByObject(final LinkedUser linkedUser) {
+        Long removal = null;
+
+        for (final Long memberID : this.storage.keySet()) {
+            final LinkedUser user = this.storage.get(memberID);
+
+            if (linkedUser.equals(user)) {
+                removal = memberID;
+                break;
+            }
+        }
+
+        if (removal != null) this.storage.remove(removal);
+    }
+
+    /**
+     * Returns an Immutable {@link Set} containing all linked member IDs
+     *
+     * @return A {@link Set} containing our discord member IDs
+     */
+    @Immutable @NotNull public Set<Long> getStorage() {
+        return Collections.unmodifiableSet(this.storage.keySet());
     }
 }

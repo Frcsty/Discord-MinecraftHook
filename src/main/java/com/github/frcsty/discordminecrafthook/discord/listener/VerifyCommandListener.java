@@ -34,7 +34,7 @@ public final class VerifyCommandListener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageReceived(final GuildMessageReceivedEvent event) {
+    public void onGuildMessageReceived(@NotNull final GuildMessageReceivedEvent event) {
         final TextChannel channel = event.getChannel();
         final Guild guild = event.getGuild();
         final String content = event.getMessage().getContentRaw();
@@ -96,8 +96,8 @@ public final class VerifyCommandListener extends ListenerAdapter {
             ));
         }
 
-        this.registeredUserStorage.setLinkedUser(member.getUser().getIdLong(), minecraftUserIdentifier, enteredCode);
-        this.registeredUserStorage.saveUser(plugin, new LinkedUser(minecraftUserIdentifier, enteredCode, System.currentTimeMillis()), member.getUser().getIdLong());
+        this.registeredUserStorage.setLinkedUser(member.getUser().getIdLong(), minecraftUserIdentifier, enteredCode, member.getUser().getIdLong());
+        this.registeredUserStorage.saveUser(plugin, new LinkedUser(minecraftUserIdentifier, enteredCode, System.currentTimeMillis(), member.getUser().getIdLong()), member.getUser().getIdLong());
     }
 
     /**

@@ -11,11 +11,19 @@ import java.util.Set;
  */
 public final class DataRegistry {
 
+    @NotNull private final DataProvider dataProvider;
     @NotNull private final RegistryHandler registryHandler;
 
     public DataRegistry(@NotNull final HookPlugin plugin) {
-        final DataProvider dataProvider = new DataProvider(plugin);
+        this.dataProvider = new DataProvider(plugin);
         this.registryHandler = new RegistryHandler(dataProvider);
+    }
+
+    /**
+     * Initializes the {@link DataProvider}
+     */
+    public void initialize() {
+        this.dataProvider.initialize();
     }
 
     /**

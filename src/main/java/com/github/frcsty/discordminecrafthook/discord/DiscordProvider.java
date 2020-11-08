@@ -9,9 +9,9 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.security.auth.login.LoginException;
-import java.util.Collections;
 import java.util.logging.Level;
 
 public final class DiscordProvider {
@@ -39,7 +39,8 @@ public final class DiscordProvider {
      *
      * @return A JDA Instance of the constructed bot
      */
-    @NotNull private JDA startBot() {
+    @NotNull
+    private JDA startBot() {
         JDA jda = null;
 
         try {
@@ -53,9 +54,6 @@ public final class DiscordProvider {
         }
 
         if (jda == null) throw new RuntimeException("JDA Provider was null! Failed to proceed.");
-
-        this.linkedGuild = jda.getGuildById(Property.getByKey("settings.guild-id"));
-
         return jda;
     }
 
@@ -64,7 +62,8 @@ public final class DiscordProvider {
      *
      * @return Active {@link JDA} instance
      */
-    @NotNull public JDA getActiveJDAInstance() {
+    @NotNull
+    public JDA getActiveJDAInstance() {
         return this.jda;
     }
 
@@ -73,8 +72,9 @@ public final class DiscordProvider {
      *
      * @return Linked {@link Guild} instance
      */
-    @NotNull public Guild getLinkedGuild() {
-        return this.linkedGuild;
+    @Nullable
+    public Guild getLinkedGuild() {
+        return this.jda.getGuildById(Property.getByKey("settings.guild-id"));
     }
 
 }

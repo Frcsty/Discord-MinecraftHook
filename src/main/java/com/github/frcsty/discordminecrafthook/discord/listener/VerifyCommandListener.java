@@ -2,12 +2,10 @@ package com.github.frcsty.discordminecrafthook.discord.listener;
 
 import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.bukkit.command.SyncRankCommand;
-import com.github.frcsty.discordminecrafthook.data.registry.RegistryHandler;
 import com.github.frcsty.discordminecrafthook.data.registry.wrapper.RegistryUser;
 import com.github.frcsty.discordminecrafthook.util.Message;
 import com.github.frcsty.discordminecrafthook.util.Property;
 import com.github.frcsty.discordminecrafthook.util.Replace;
-import com.github.frcsty.discordminecrafthook.util.Role;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -24,11 +22,10 @@ import java.util.logging.Level;
 
 public final class VerifyCommandListener extends ListenerAdapter {
 
-    @NotNull private final HookPlugin plugin;
-    @NotNull private final RegistryHandler registryHandler;
+    @NotNull
+    private final HookPlugin plugin;
 
     public VerifyCommandListener(@NotNull final HookPlugin plugin) {
-        this.registryHandler = plugin.getRegistryHandler();
         this.plugin = plugin;
     }
 
@@ -45,13 +42,9 @@ public final class VerifyCommandListener extends ListenerAdapter {
         if (author.isBot()) return;
 
         final Member member = event.getMember();
-        if (this.registryHandler.getRegistryUser(member.getUser().getIdLong()) != null) {
-            channel.sendMessage(
-                    Property.getByKey("message.already-linked")
-            ).queue();
+        if (member == null) {
             return;
         }
-
         final String[] arguments = content.split(" ");
 
         if (arguments.length < 2) {
@@ -67,6 +60,13 @@ public final class VerifyCommandListener extends ListenerAdapter {
         if (minecraftUserIdentifier == null) {
             channel.sendMessage(
                     Property.getByKey("message.invalid-code")
+            ).queue();
+            return;
+        }
+
+        if (plugin.getRegistryHandler().getRegistryUser(minecraftUserIdentifier) != null) {
+            channel.sendMessage(
+                    Property.getByKey("message.already-linked")
             ).queue();
             return;
         }
@@ -103,12 +103,12 @@ public final class VerifyCommandListener extends ListenerAdapter {
             ));
 
             final net.luckperms.api.model.user.User luckPermsUser = plugin.getLuckPermsProvider().getUserManager().getUser(onlineMinecraftPlayer.getUniqueId());
-            SyncRankCommand.executeRoleCheck(plugin, onlineMinecraftPlayer, luckPermsUser, user);
+            SyncRankCommand.executeRoleCheck(plugin, guild, onlineMinecraftPlayer, luckPermsUser, user);
         }
 
         user.setUserAsLinked(enteredCode, System.currentTimeMillis());
 
-        this.registryHandler.saveUser(user);
+        plugin.getRegistryHandler().saveUser(user);
     }
 
 }

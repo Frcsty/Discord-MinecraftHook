@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -18,6 +19,9 @@ final class FileProvider implements AbstractDataProvider {
 
     FileProvider(@NotNull final JavaPlugin plugin) {
         this.plugin = plugin;
+
+        final File directory = new File(plugin.getDataFolder() + "/user-data");
+        if (!directory.exists()) directory.mkdir();
     }
 
     /**
@@ -29,7 +33,7 @@ final class FileProvider implements AbstractDataProvider {
     @SuppressWarnings("ConstantConditions")
     @Nullable
     @Override
-    public RegistryUser loadUser(@NotNull final Object userIdentifier) {
+    public RegistryUser loadUser(@NotNull final UUID userIdentifier) {
         final File userFile = getFileAssociated(userIdentifier);
 
         if (userFile != null) {
@@ -68,8 +72,14 @@ final class FileProvider implements AbstractDataProvider {
         dataSection.set("verifyCodeUsed", user.getVerifyCodeUsed());
         dataSection.set("verifyDate", user.getVerifyDate());
 
-        dataSection.set("minecraftUUID", user.getMinecraftUUID());
+        dataSection.set("minecraftUUID", user.getMinecraftUUID().toString());
         dataSection.set("minecraftUsername", user.getMinecraftUsername());
+
+        try {
+            configuration.save(userFile);
+        } catch (final IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -89,13 +99,13 @@ final class FileProvider implements AbstractDataProvider {
     }
 
     /**
-     * Returns a file name formatted as "<UUID>;<memberID>.yml" from the given user
+     * Returns a file name formatted as "<UUID>.yml" from the given user
      *
      * @param user  Specified {@link RegistryUser}
      * @return  File name {@link String} generated from user details
      */
     @NotNull private String getFileName(@NotNull final RegistryUser user) {
-        return user.getMinecraftUUID().toString() + ";" + user.getMemberID() + ".yml";
+        return user.getMinecraftUUID().toString() + ".yml";
     }
 
     /**

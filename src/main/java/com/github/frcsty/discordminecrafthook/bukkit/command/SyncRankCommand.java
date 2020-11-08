@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 @SuppressWarnings("unused")
 @Command("ranksync")
@@ -31,15 +32,20 @@ public final class SyncRankCommand extends CommandBase {
         this.plugin = plugin;
     }
 
-    public static void executeRoleCheck(final HookPlugin plugin, final Player player, final User luckPermsUser, final RegistryUser registryUser) {
+    public static void executeRoleCheck(final HookPlugin plugin, final Guild guild, final Player player, final User luckPermsUser, final RegistryUser registryUser) {
         CompletableFuture.supplyAsync(() -> {
-            final Guild guild = plugin.getLinkedDiscordGuild();
             final Member discordMember = guild.getMemberById(registryUser.getMemberID());
 
+            if (discordMember == null) {
+                plugin.getLogger().log(Level.SEVERE, "Discord member for RegistryUser with Name '" + registryUser.getMinecraftUsername() + "' is null!");
+                return null;
+            }
             for (final Role role : discordMember.getRoles()) {
                 final Group group = getGroupByRoleID(plugin, role.getIdLong());
 
-                if (group == null) continue;
+                if (group == null) {
+                    continue;
+                }
                 if (!player.hasPermission("group." + group.getName())) {
                     guild.removeRoleFromMember(discordMember, role).complete();
                 }
@@ -48,8 +54,12 @@ public final class SyncRankCommand extends CommandBase {
             for (final Group group : plugin.getRoleAssociations().keySet()) {
                 final Role role = getRoleByGroup(plugin, group);
 
-                if (!discordMember.getRoles().contains(role)) continue;
-                if (!player.hasPermission("group." + group.getName())) continue;
+                if (discordMember.getRoles().contains(role)) {
+                    continue;
+                }
+                if (!player.hasPermission("group." + group.getName())) {
+                    continue;
+                }
 
                 guild.addRoleToMember(discordMember, role).complete();
             }
@@ -108,8 +118,12 @@ public final class SyncRankCommand extends CommandBase {
             return;
         }
 
+        Message.send(
+                player,
+                Property.getByKey("message.roles-synced")
+        );
         final User luckPermsUser = plugin.getLuckPermsProvider().getUserManager().getUser(identifier);
-        executeRoleCheck(plugin, player, luckPermsUser, user);
+        executeRoleCheck(plugin, plugin.getLinkedDiscordGuild(), player, luckPermsUser, user);
     }
 
 }

@@ -17,21 +17,20 @@ import net.luckperms.api.model.group.Group;
 import org.bukkit.Warning;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
 public final class HookPlugin extends JavaPlugin {
 
     public static String dataFolder;
-    @NotNull
-    private final RequestCache requestCache = new RequestCache();
-    @NotNull
-    private final DiscordProvider discordProvider = new DiscordProvider(this);
-    @NotNull
-    private final DataRegistry dataRegistry = new DataRegistry(this);
+
+    @NotNull private final DataRegistry dataRegistry = new DataRegistry(this);
+
+    @NotNull private final RequestCache requestCache = new RequestCache();
+    @NotNull private final DiscordProvider discordProvider = new DiscordProvider(this);
+
     private final Map<Group, Long> roleAssociations = new HashMap<>();
 
     @Override
@@ -39,28 +38,19 @@ public final class HookPlugin extends JavaPlugin {
         dataFolder = getDataFolder().getPath();
 
         saveResources(
-                "plugin.properties",
-                "hikari.properties"
+                "plugin.properties"
         );
 
-        CompletableFuture.supplyAsync(() -> {
-            new File(getDataFolder() + "/user-data/");
+        this.dataRegistry.initialize();
+        this.discordProvider.initialize();
 
-            setRankRoleProperties();
+        setRankRoleProperties();
 
-            this.discordProvider.initialize();
-
-            registerCommands(
-                    new VerifyCommand(this),
-                    new UnlinkCommand(this),
-                    new SyncRankCommand(this)
-            );
-            return null;
-        }).exceptionally(ex -> {
-            getLogger().log(Level.SEVERE, "An exception has occurred while initializing the plugin, disabling it.");
-            getPluginLoader().disablePlugin(this);
-            return null;
-        });
+        registerCommands(
+                new VerifyCommand(this),
+                new UnlinkCommand(this),
+                new SyncRankCommand(this)
+        );
     }
 
     /**
@@ -98,7 +88,7 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return {@link Guild}
      */
-    @NotNull
+    @Nullable
     public Guild getLinkedDiscordGuild() {
         return this.discordProvider.getLinkedGuild();
     }
@@ -108,7 +98,7 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @param resources Desired resources path's to be saved
      */
-    private void saveResources(@NotNull final String... resources) {
+    public void saveResources(@NotNull final String... resources) {
         Arrays.stream(resources).forEach(resource -> {
             if (!new File(getDataFolder(), resource).exists()) saveResource(resource, false);
         });

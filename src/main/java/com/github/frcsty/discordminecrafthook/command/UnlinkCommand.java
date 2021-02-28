@@ -5,6 +5,7 @@ import com.github.frcsty.discordminecrafthook.config.ConfigStorage;
 import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
 import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
 import com.github.frcsty.discordminecrafthook.util.Message;
+import com.github.frcsty.discordminecrafthook.util.Task;
 import me.mattstudios.mf.annotations.Command;
 import me.mattstudios.mf.annotations.Default;
 import me.mattstudios.mf.annotations.Permission;
@@ -28,20 +29,22 @@ public final class UnlinkCommand extends CommandBase {
     @Default
     @Permission("discordhook.command.unlink")
     public void onCommand(final Player player) {
-        final LinkedUser linkedUser = this.registeredUserStorage.getLinkedUserByMinecraftUUID(player.getUniqueId());
-        if (linkedUser == null) {
+        Task.async(() -> {
+            final LinkedUser linkedUser = this.registeredUserStorage.getLinkedUserByMinecraftUUID(player.getUniqueId());
+            if (linkedUser == null) {
+                Message.send(
+                        player,
+                        this.configStorage.getConfigString("messages.not-linked")
+                );
+                return;
+            }
+
+            this.registeredUserStorage.invalidateUser(plugin, linkedUser);
             Message.send(
                     player,
-                    this.configStorage.getConfigString("messages.not-linked")
+                    this.configStorage.getConfigString("messages.user-unlinked-mc")
             );
-            return;
-        }
-
-        this.registeredUserStorage.invalidateUser(plugin, linkedUser);
-        Message.send(
-                player,
-                this.configStorage.getConfigString("messages.user-unlinked-mc")
-        );
+        });
     }
 
 }

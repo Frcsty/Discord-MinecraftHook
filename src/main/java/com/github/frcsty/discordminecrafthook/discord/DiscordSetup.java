@@ -14,8 +14,10 @@ import java.util.logging.Level;
 
 public final class DiscordSetup {
 
-    @NotNull private final HookPlugin plugin;
-    @NotNull private final ConfigStorage configStorage;
+    @NotNull
+    private final HookPlugin plugin;
+    @NotNull
+    private final ConfigStorage configStorage;
 
     private JDA jda;
     private Guild linkedGuild;
@@ -39,7 +41,8 @@ public final class DiscordSetup {
      *
      * @return A JDA Instance of the constructed bot
      */
-    @NotNull private JDA startBot() {
+    @NotNull
+    private JDA startBot() {
         JDA jda = null;
 
         try {
@@ -63,7 +66,8 @@ public final class DiscordSetup {
      *
      * @return Active {@link JDA} instance
      */
-    @NotNull public JDA getActiveJDAInstance() {
+    @NotNull
+    public JDA getActiveJDAInstance() {
         return this.jda;
     }
 
@@ -72,7 +76,8 @@ public final class DiscordSetup {
      *
      * @return Linked {@link Guild} instance
      */
-    @NotNull public Guild getLinkedGuild() {
+    @NotNull
+    public Guild getLinkedGuild() {
         return this.linkedGuild;
     }
 

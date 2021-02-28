@@ -22,10 +22,14 @@ import java.util.logging.Level;
 
 public final class MinecraftGroupProvider {
 
-    @NotNull private final RegisteredUserStorage registeredUserStorage;
-    @NotNull private final Map<Group, Long> linkedGroups = new HashMap<>();
-    @NotNull private final HookPlugin plugin;
-    @NotNull private final LuckPerms luckPerms;
+    @NotNull
+    private final RegisteredUserStorage registeredUserStorage;
+    @NotNull
+    private final Map<Group, Long> linkedGroups = new HashMap<>();
+    @NotNull
+    private final HookPlugin plugin;
+    @NotNull
+    private final LuckPerms luckPerms;
 
     public MinecraftGroupProvider(@NotNull final HookPlugin plugin) {
         this.plugin = plugin;
@@ -34,7 +38,7 @@ public final class MinecraftGroupProvider {
     }
 
     public void initializeRunnable() {
-        final long delay = Long.valueOf(plugin.getConfigStorage().getConfigString("settings.sync-delay"));
+        final long delay = Long.parseLong(plugin.getConfigStorage().getConfigString("settings.sync-delay"));
 
         new BukkitRunnable() {
             @Override
@@ -42,6 +46,7 @@ public final class MinecraftGroupProvider {
                 final Guild guild = plugin.getDiscordProvider().getLinkedGuild();
                 final UserManager userManager = luckPerms.getUserManager();
 
+                /*
                 for (final long memberID : registeredUserStorage.getStorage()) {
                     final LinkedUser linkedUser = registeredUserStorage.getLinkedUserByMemberTag(memberID);
 
@@ -66,7 +71,7 @@ public final class MinecraftGroupProvider {
 
                             guild.getController().removeRolesFromMember(member, role).complete();
                         }
-                        /*
+
                         final ImmutableContextSet contextSet = luckPerms.getContextManager().getStaticContext();
                         final QueryOptions queryOptions = luckPerms.getContextManager().getStaticQueryOptions();
 
@@ -75,9 +80,10 @@ public final class MinecraftGroupProvider {
                             final Long linkedRole =
 
                         });
-                        */
+
                     });
                 }
+                */
             }
         }.runTaskTimerAsynchronously(plugin, 0, delay);
     }
@@ -124,7 +130,7 @@ public final class MinecraftGroupProvider {
      * Returns the linked discord role ID, or 0 if it doesn't exist
      *
      * @param group User's {@link Group} to be assigned in discord
-     * @return  Linked discord role ID, or 0 if not present
+     * @return Linked discord role ID, or 0 if not present
      */
     public long getLinkedDiscordRoleID(final Group group) {
         return this.linkedGroups.get(group);
@@ -135,7 +141,7 @@ public final class MinecraftGroupProvider {
      * or the linked role can not be found
      *
      * @param groupName User's {@link Group} to be assigned as a {@link String}
-     * @return  Linked discord role ID, or 0 if invalid group, or not present
+     * @return Linked discord role ID, or 0 if invalid group, or not present
      */
     public long getLinkedDiscordRoleID(final String groupName) {
         final Group group = this.luckPerms.getGroupManager().getGroup(groupName);

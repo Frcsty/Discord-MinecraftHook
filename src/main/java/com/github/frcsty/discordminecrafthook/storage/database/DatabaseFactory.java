@@ -13,9 +13,11 @@ import java.util.Properties;
 
 public abstract class DatabaseFactory {
 
-    @Nullable public abstract Connection getConnection();
+    @NotNull
+    public abstract Connection getConnection();
 
-    @NotNull public abstract String getDatabaseName();
+    @NotNull
+    public abstract String getDatabaseName();
 
     /**
      * Constructs a hikari data source from our file

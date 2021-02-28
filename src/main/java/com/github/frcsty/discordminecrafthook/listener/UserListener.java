@@ -3,6 +3,7 @@ package com.github.frcsty.discordminecrafthook.listener;
 import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.storage.MinecraftGroupProvider;
 import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
+import com.github.frcsty.discordminecrafthook.util.Task;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
@@ -23,14 +24,20 @@ import java.util.logging.Logger;
 
 public final class UserListener {
 
-    @NotNull private final Logger logger;
+    @NotNull
+    private final Logger logger;
 
-    @NotNull private final MinecraftGroupProvider minecraftGroupProvider;
-    @NotNull private final RegisteredUserStorage registeredUserStorage;
-    @NotNull private final LuckPerms luckPerms;
+    @NotNull
+    private final MinecraftGroupProvider minecraftGroupProvider;
+    @NotNull
+    private final RegisteredUserStorage registeredUserStorage;
+    @NotNull
+    private final LuckPerms luckPerms;
 
-    @NotNull private final JDA jda;
-    @NotNull private final Guild guild;
+    @NotNull
+    private final JDA jda;
+    @NotNull
+    private final Guild guild;
 
     /**
      * Handles {@link EventBus} event subscriptions
@@ -76,33 +83,35 @@ public final class UserListener {
      * @param event A subclass of {@link UserTrackEvent}
      */
     private void handleRole(final UserTrackEvent event) {
-        final User user = event.getUser();
-        final long discordUserID = this.registeredUserStorage.getLinkedUserMemberTagByUUID(user.getUniqueId());
-        final net.dv8tion.jda.core.entities.User discordUser = jda.getUserById(discordUserID);
+        Task.async(() -> {
+            final User user = event.getUser();
+            final long discordUserID = this.registeredUserStorage.getLinkedUserMemberTagByUUID(user.getUniqueId());
+            final net.dv8tion.jda.core.entities.User discordUser = jda.getUserById(discordUserID);
 
-        if (discordUser == null) {
-            this.logger.log(Level.WARNING, "Discord User for Player with name '" + user.getFriendlyName() + "' could not be found!");
-            return;
-        }
+            if (discordUser == null) {
+                this.logger.log(Level.WARNING, "Discord User for Player with name '" + user.getFriendlyName() + "' could not be found!");
+                return;
+            }
 
-        final Group from = getGroupByName(event.getGroupFrom().orElse("invalid"));
-        final Group to = getGroupByName(event.getGroupTo().orElse("invalid"));
+            final Group from = getGroupByName(event.getGroupFrom().orElse("invalid"));
+            final Group to = getGroupByName(event.getGroupTo().orElse("invalid"));
 
-        final long fromGroup = this.minecraftGroupProvider.getLinkedDiscordRoleID(from);
-        final long toGroup = this.minecraftGroupProvider.getLinkedDiscordRoleID(to);
+            final long fromGroup = this.minecraftGroupProvider.getLinkedDiscordRoleID(from);
+            final long toGroup = this.minecraftGroupProvider.getLinkedDiscordRoleID(to);
 
-        final Member member = this.guild.getMember(discordUser);
-        final GuildController controller = this.guild.getController();
+            final Member member = this.guild.getMember(discordUser);
+            final GuildController controller = this.guild.getController();
 
-        controller.addRolesToMember(member, getRoleByLongId(guild, toGroup)).complete();
-        controller.removeRolesFromMember(member, getRoleByLongId(guild, fromGroup)).complete();
+            controller.addRolesToMember(member, getRoleByLongId(guild, toGroup)).complete();
+            controller.removeRolesFromMember(member, getRoleByLongId(guild, fromGroup)).complete();
+        });
     }
 
     /**
      * Returns a group by name, or null if not present
      *
      * @param groupName Retrieved group name
-     * @return  A {@link Group} or null if none match the name
+     * @return A {@link Group} or null if none match the name
      */
     private Group getGroupByName(final String groupName) {
         return this.luckPerms.getGroupManager().getGroup(groupName);
@@ -111,9 +120,9 @@ public final class UserListener {
     /**
      * Finds and retrieve a role by a given {@link Long} roleID or null
      *
-     * @param guild     Our guild instance
-     * @param roleId    Our desired role id
-     * @return  Returns a {@link Role} matching our id, or null
+     * @param guild  Our guild instance
+     * @param roleId Our desired role id
+     * @return Returns a {@link Role} matching our id, or null
      */
     private Role getRoleByLongId(final Guild guild, final long roleId) {
         final List<Role> roles = guild.getRoles();

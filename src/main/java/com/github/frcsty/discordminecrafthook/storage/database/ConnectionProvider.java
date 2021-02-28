@@ -3,7 +3,6 @@ package com.github.frcsty.discordminecrafthook.storage.database;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,8 +11,10 @@ import java.util.logging.Level;
 
 public final class ConnectionProvider extends DatabaseFactory {
 
-    @NotNull private final HikariDataSource dataSource;
-    @NotNull private final JavaPlugin plugin;
+    @NotNull
+    private final HikariDataSource dataSource;
+    @NotNull
+    private final JavaPlugin plugin;
 
     /**
      * Set's up our variables
@@ -32,16 +33,19 @@ public final class ConnectionProvider extends DatabaseFactory {
      * @return Our Database {@link Connection}
      */
     @Override
-    public @Nullable java.sql.Connection getConnection() {
-        java.sql.Connection connection;
+    @NotNull
+    public java.sql.Connection getConnection() {
+        java.sql.Connection connection = null;
 
         try {
             connection = dataSource.getConnection();
         } catch (final SQLException ex) {
             plugin.getLogger().log(Level.WARNING, "Failed to initialize database connection!");
             plugin.getServer().getPluginManager().disablePlugin(plugin);
-            return null;
         }
+
+        if (connection == null)
+            throw new RuntimeException("Connection was null");
 
         return connection;
     }
@@ -63,19 +67,7 @@ public final class ConnectionProvider extends DatabaseFactory {
     public void setupDatabase() {
         final Connection connection = getConnection();
 
-        if (connection == null) {
-            plugin.getLogger().log(Level.WARNING, "Database connection was null, failed to setup database!");
-            return;
-        }
-
         try {
-            connection.prepareStatement(
-                    String.format(
-                            Statement.SETUP_DATABASE,
-                            getDatabaseName()
-                    )
-            ).executeUpdate();
-
             connection.prepareStatement(
                     String.format(
                             Statement.SETUP_REGISTERED_USERS_TABLE,

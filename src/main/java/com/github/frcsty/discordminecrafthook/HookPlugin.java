@@ -23,16 +23,22 @@ import java.util.logging.Level;
 
 public final class HookPlugin extends JavaPlugin {
 
-    @NotNull private final ConfigStorage configStorage = new ConfigStorage();
-    @NotNull private final RequestCache cache = new RequestCache(configStorage);
-    @NotNull private final DiscordSetup discordSetup = new DiscordSetup(this);
+    @NotNull
+    private final ConfigStorage configStorage = new ConfigStorage();
+    @NotNull
+    private final RequestCache cache = new RequestCache(configStorage);
+    @NotNull
+    private final DiscordSetup discordSetup = new DiscordSetup(this);
 
-    @NotNull private final RegisteredUserStorage registeredUserStorage = new RegisteredUserStorage();
-    @NotNull private final MinecraftGroupProvider minecraftGroupProvider = new MinecraftGroupProvider(this);
+    @NotNull
+    private final RegisteredUserStorage registeredUserStorage = new RegisteredUserStorage();
+    @NotNull
+    private final MinecraftGroupProvider minecraftGroupProvider = new MinecraftGroupProvider(this);
 
     private LuckPerms luckPerms;
 
-    @Override public void onEnable() {
+    @Override
+    public void onEnable() {
         saveDefaultConfig();
 
         saveResources(
@@ -52,7 +58,7 @@ public final class HookPlugin extends JavaPlugin {
             this.discordSetup.initialize();
             //new UserListener(this);
 
-            this.minecraftGroupProvider.initializeRunnable();
+            //this.minecraftGroupProvider.initializeRunnable();
 
             return null;
         }).exceptionally(ex -> {
@@ -61,10 +67,9 @@ public final class HookPlugin extends JavaPlugin {
         });
     }
 
-    @Override public void onDisable() {
+    @Override
+    public void onDisable() {
         reloadConfig();
-
-        this.registeredUserStorage.save(this);
     }
 
     /**
@@ -72,7 +77,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return A loaded instance of {@link RequestCache}
      */
-    @NotNull public RequestCache getRequestCache() {
+    @NotNull
+    public RequestCache getRequestCache() {
         return this.cache;
     }
 
@@ -81,7 +87,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return A loaded instance of {@link ConfigStorage}
      */
-    @NotNull public ConfigStorage getConfigStorage() {
+    @NotNull
+    public ConfigStorage getConfigStorage() {
         return this.configStorage;
     }
 
@@ -90,7 +97,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return A loaded instance of {@link RegisteredUserStorage}
      */
-    @NotNull public RegisteredUserStorage getRegisteredUserStorage() {
+    @NotNull
+    public RegisteredUserStorage getRegisteredUserStorage() {
         return this.registeredUserStorage;
     }
 
@@ -99,7 +107,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return The loaded {@link LuckPerms} provider
      */
-    @NotNull public LuckPerms getLuckPermsProvider() {
+    @NotNull
+    public LuckPerms getLuckPermsProvider() {
         return this.luckPerms;
     }
 
@@ -108,7 +117,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return A loaded instance of {@link MinecraftGroupProvider}
      */
-    @NotNull public MinecraftGroupProvider getMinecraftGroupProvider() {
+    @NotNull
+    public MinecraftGroupProvider getMinecraftGroupProvider() {
         return this.minecraftGroupProvider;
     }
 
@@ -117,7 +127,8 @@ public final class HookPlugin extends JavaPlugin {
      *
      * @return our active {@link DiscordSetup} instance
      */
-    @NotNull public DiscordSetup getDiscordProvider() {
+    @NotNull
+    public DiscordSetup getDiscordProvider() {
         return this.discordSetup;
     }
 

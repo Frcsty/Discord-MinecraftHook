@@ -1,6 +1,0 @@
-name: Discord-MinecraftHook
-version: 2.0.0-Alpha
-main: com.github.frcsty.discordminecrafthook.HookPlugin
-api-version: 1.13
-author: Frcsty
-depend: ["PlaceholderAPI", "LuckPerms"]

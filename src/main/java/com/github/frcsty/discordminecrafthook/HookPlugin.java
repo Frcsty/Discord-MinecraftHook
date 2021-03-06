@@ -44,8 +44,7 @@ public final class HookPlugin extends JavaPlugin {
         saveResources(
                 "hikari.properties"
         );
-
-        CompletableFuture.supplyAsync(() -> {
+        this.retrieveLuckPermsProvider();
             this.configStorage.load(this);
             this.registeredUserStorage.load(this);
             this.minecraftGroupProvider.setupConfig();
@@ -60,11 +59,6 @@ public final class HookPlugin extends JavaPlugin {
 
             //this.minecraftGroupProvider.initializeRunnable();
 
-            return null;
-        }).exceptionally(ex -> {
-            getLogger().log(Level.SEVERE, "An exception has occurred while initializing the plugin!", ex);
-            return null;
-        });
     }
 
     @Override
@@ -165,9 +159,10 @@ public final class HookPlugin extends JavaPlugin {
             getLogger().log(Level.SEVERE, "Failed to find LuckPerms.class Provider! Disabling plugin.");
             getPluginLoader().disablePlugin(this);
             return;
-        }
-
+        } else {
         this.luckPerms = luckPermsProvider.getProvider();
+        }
+        System.out.println("BRUH!");
     }
 
 }

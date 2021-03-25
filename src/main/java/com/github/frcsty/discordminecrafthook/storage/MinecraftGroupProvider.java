@@ -14,7 +14,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -27,14 +28,14 @@ public final class MinecraftGroupProvider {
     @NotNull
     private final Map<Group, Long> linkedGroups = new HashMap<>();
     @NotNull
-    private final HookPlugin plugin;
-    @NotNull
     private final LuckPerms luckPerms;
+    @NotNull
+    private final HookPlugin plugin;
 
     public MinecraftGroupProvider(@NotNull final HookPlugin plugin) {
-        this.plugin = plugin;
         this.registeredUserStorage = plugin.getRegisteredUserStorage();
         this.luckPerms = plugin.getLuckPermsProvider();
+        this.plugin = plugin;
     }
 
     public void initializeRunnable() {
@@ -94,7 +95,9 @@ public final class MinecraftGroupProvider {
      * loads them to our linkedGroups {@link Map} alongside it's respective Discord Role ID
      */
     public void setupConfig() {
-        final GroupManager groupManager = luckPerms.getGroupManager();
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        LuckPerms api = provider.getProvider();
+        final GroupManager groupManager = api.getGroupManager();
         final FileConfiguration configuration = this.plugin.getConfig();
 
         if (configuration.getConfigurationSection("minecraft-groups") == null) {

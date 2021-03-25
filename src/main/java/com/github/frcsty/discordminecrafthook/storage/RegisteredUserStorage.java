@@ -85,6 +85,7 @@ public final class RegisteredUserStorage {
             ).executeQuery();
 
             if (result != null) {
+                while(result.next()){
                 final UUID minecraftID = UUID.fromString(result.getString("uuid"));
                 final String minecraftUsername = result.getString("minecraftUsername");
                 final long memberID = result.getLong("memberTag");
@@ -99,7 +100,7 @@ public final class RegisteredUserStorage {
                         linkedDate,
                         memberID
                 );
-            }
+            }}
 
             connection.close();
         } catch (final SQLException exception) {
@@ -122,6 +123,7 @@ public final class RegisteredUserStorage {
             ).executeQuery();
 
             if (result != null) {
+                while (result.next()) {
                 final UUID minecraftID = UUID.fromString(result.getString("uuid"));
                 final String minecraftUsername = result.getString("minecraftUsername");
                 final long memberID = result.getLong("memberTag");
@@ -136,7 +138,7 @@ public final class RegisteredUserStorage {
                         linkedDate,
                         memberID
                 );
-            }
+            }}
 
             connection.close();
         } catch (final SQLException exception) {

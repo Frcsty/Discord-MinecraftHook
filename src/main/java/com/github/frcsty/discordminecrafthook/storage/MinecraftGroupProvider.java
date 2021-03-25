@@ -126,6 +126,10 @@ public final class MinecraftGroupProvider {
         }
     }
 
+    public Map<Group, Long> getLinkedGroups() {
+        return this.linkedGroups;
+    }
+
     /**
      * Returns the linked discord role ID, or 0 if it doesn't exist
      *

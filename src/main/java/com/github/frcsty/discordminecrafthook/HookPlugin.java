@@ -1,12 +1,14 @@
 package com.github.frcsty.discordminecrafthook;
 
 import com.github.frcsty.discordminecrafthook.cache.RequestCache;
+import com.github.frcsty.discordminecrafthook.command.SyncRankCommand;
 import com.github.frcsty.discordminecrafthook.command.UnlinkCommand;
 import com.github.frcsty.discordminecrafthook.command.VerifyCommand;
 import com.github.frcsty.discordminecrafthook.config.ConfigStorage;
 import com.github.frcsty.discordminecrafthook.discord.DiscordSetup;
 import com.github.frcsty.discordminecrafthook.storage.MinecraftGroupProvider;
 import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
+import com.github.frcsty.discordminecrafthook.util.Task;
 import me.mattstudios.mf.base.CommandBase;
 import me.mattstudios.mf.base.CommandManager;
 import net.luckperms.api.LuckPerms;
@@ -45,25 +47,21 @@ public final class HookPlugin extends JavaPlugin {
                 "hikari.properties"
         );
 
-        CompletableFuture.supplyAsync(() -> {
+        Task.async(() -> {
             this.configStorage.load(this);
             this.registeredUserStorage.load(this);
             this.minecraftGroupProvider.setupConfig();
 
             registerCommands(
                     new VerifyCommand(this),
-                    new UnlinkCommand(this)
+                    new UnlinkCommand(this),
+                    new SyncRankCommand(this)
             );
 
             this.discordSetup.initialize();
             //new UserListener(this);
 
             //this.minecraftGroupProvider.initializeRunnable();
-
-            return null;
-        }).exceptionally(ex -> {
-            getLogger().log(Level.SEVERE, "An exception has occurred while initializing the plugin!", ex);
-            return null;
         });
     }
 

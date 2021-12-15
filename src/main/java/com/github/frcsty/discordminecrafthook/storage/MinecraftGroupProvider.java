@@ -1,24 +1,20 @@
 package com.github.frcsty.discordminecrafthook.storage;
 
 import com.github.frcsty.discordminecrafthook.HookPlugin;
-import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Guild;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.group.GroupManager;
-import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class MinecraftGroupProvider {
@@ -96,6 +92,7 @@ public final class MinecraftGroupProvider {
      */
     public void setupConfig() {
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        assert provider != null;
         LuckPerms api = provider.getProvider();
         final GroupManager groupManager = api.getGroupManager();
         final FileConfiguration configuration = this.plugin.getConfig();
@@ -129,7 +126,7 @@ public final class MinecraftGroupProvider {
         }
     }
 
-    public Map<Group, Long> getLinkedGroups() {
+    public @NotNull Map<Group, Long> getLinkedGroups() {
         return this.linkedGroups;
     }
 

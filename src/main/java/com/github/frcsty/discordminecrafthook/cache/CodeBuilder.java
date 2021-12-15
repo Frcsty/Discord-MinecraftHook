@@ -18,8 +18,8 @@ public final class CodeBuilder {
      * Constructs and returns a random String code
      * with the desired size
      *
-     * @param size  The size of returned code
-     * @return      A random String Code
+     * @param size The size of returned code
+     * @return A random String Code
      */
     private static String getRandomCode(final int size) {
         String result = "";
@@ -35,11 +35,11 @@ public final class CodeBuilder {
      * Constructs and returns a random String code
      * with the desired size
      *
-     * @param size  The size of returned code
-     * @return      A random String code
+     * @param size The size of returned code
+     * @return A random String code
      */
     public static String getRandomCode(final String size) {
-        return getRandomCode(Integer.valueOf(size));
+        return getRandomCode(Integer.parseInt(size));
     }
 
 }

@@ -4,11 +4,10 @@ import com.github.frcsty.discordminecrafthook.HookPlugin;
 import com.github.frcsty.discordminecrafthook.storage.MinecraftGroupProvider;
 import com.github.frcsty.discordminecrafthook.storage.RegisteredUserStorage;
 import com.github.frcsty.discordminecrafthook.util.Task;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.managers.GuildController;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.event.EventBus;
 import net.luckperms.api.event.user.track.UserDemoteEvent;
@@ -86,7 +85,7 @@ public final class UserListener {
         Task.async(() -> {
             final User user = event.getUser();
             final long discordUserID = this.registeredUserStorage.getLinkedUserMemberTagByUUID(user.getUniqueId());
-            final net.dv8tion.jda.core.entities.User discordUser = jda.getUserById(discordUserID);
+            final net.dv8tion.jda.api.entities.User discordUser = jda.getUserById(discordUserID);
 
             if (discordUser == null) {
                 this.logger.log(Level.WARNING, "Discord User for Player with name '" + user.getFriendlyName() + "' could not be found!");
@@ -100,10 +99,10 @@ public final class UserListener {
             final long toGroup = this.minecraftGroupProvider.getLinkedDiscordRoleID(to);
 
             final Member member = this.guild.getMember(discordUser);
-            final GuildController controller = this.guild.getController();
 
-            controller.addRolesToMember(member, getRoleByLongId(guild, toGroup)).complete();
-            controller.removeRolesFromMember(member, getRoleByLongId(guild, fromGroup)).complete();
+            assert member != null;
+            guild.addRoleToMember(member, getRoleByLongId(guild, toGroup)).complete();
+            guild.removeRoleFromMember(member, getRoleByLongId(guild, fromGroup)).complete();
         });
     }
 

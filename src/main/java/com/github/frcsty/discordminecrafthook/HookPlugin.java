@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class HookPlugin extends JavaPlugin {

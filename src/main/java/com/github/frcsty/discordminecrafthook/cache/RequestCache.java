@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class RequestCache {
 
-    @NotNull private final Cache<String, UUID> requestCache;
+    @NotNull
+    private final Cache<String, UUID> requestCache;
 
     /**
      * Builds our Timed Cache with predefined parameters
@@ -33,8 +34,8 @@ public final class RequestCache {
     /**
      * Adds a cache for a specific player to the cache
      *
-     * @param code              The player specific code
-     * @param playerIdentifier  Specified player's {@link UUID}
+     * @param code             The player specific code
+     * @param playerIdentifier Specified player's {@link UUID}
      */
     public void addCodeToCache(final String code, final UUID playerIdentifier) {
         this.requestCache.put(code, playerIdentifier);
@@ -44,17 +45,18 @@ public final class RequestCache {
      * Returns the {@link UUID} associated to the given code,
      * or null if there is none
      *
-     * @param code  Specified code in interest
-     * @return  Returns a {@link UUID} associated to specified code or null
+     * @param code Specified code in interest
+     * @return Returns a {@link UUID} associated to specified code or null
      */
-    @Nullable public UUID getUUIDAssociatedTo(final String code) {
+    @Nullable
+    public UUID getUUIDAssociatedTo(final String code) {
         return this.requestCache.getIfPresent(code);
     }
 
     /**
      * Invalidates desired code if it exists within the Cache
      *
-     * @param code  Code specified to be invalidated
+     * @param code Code specified to be invalidated
      */
     public void invalidateCode(final String code) {
         this.requestCache.invalidate(code);

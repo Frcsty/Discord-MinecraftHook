@@ -16,9 +16,12 @@ import org.jetbrains.annotations.NotNull;
 @Command("unlink")
 public final class UnlinkCommand extends CommandBase {
 
-    @NotNull private final HookPlugin plugin;
-    @NotNull private final RegisteredUserStorage registeredUserStorage;
-    @NotNull private final ConfigStorage configStorage;
+    @NotNull
+    private final HookPlugin plugin;
+    @NotNull
+    private final RegisteredUserStorage registeredUserStorage;
+    @NotNull
+    private final ConfigStorage configStorage;
 
     public UnlinkCommand(@NotNull final HookPlugin plugin) {
         this.plugin = plugin;

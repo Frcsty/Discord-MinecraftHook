@@ -14,7 +14,8 @@ import java.util.UUID;
 
 public final class RequestRemovalListener implements RemovalListener<String, UUID> {
 
-    @NotNull private final ConfigStorage configStorage;
+    @NotNull
+    private final ConfigStorage configStorage;
 
     public RequestRemovalListener(@NotNull final ConfigStorage configStorage) {
         this.configStorage = configStorage;

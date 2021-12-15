@@ -8,9 +8,9 @@ import com.github.frcsty.discordminecrafthook.storage.wrapper.LinkedUser;
 import com.github.frcsty.discordminecrafthook.util.Message;
 import com.github.frcsty.discordminecrafthook.util.Replace;
 import com.github.frcsty.discordminecrafthook.util.Task;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -52,6 +52,7 @@ public final class VerifyCommandListener extends ListenerAdapter {
             if (author.isBot()) return;
 
             final Member member = event.getMember();
+            assert member != null;
             if (this.registeredUserStorage.getLinkedUserByMemberTag(member.getUser().getIdLong()) != null) {
                 channel.sendMessage(
                         this.configStorage.getConfigString("messages.already-linked")
@@ -85,7 +86,7 @@ public final class VerifyCommandListener extends ListenerAdapter {
                 plugin.getLogger().log(Level.WARNING, "Specified role was null, please double check config settings!");
                 return;
             }
-            guild.getController().addRolesToMember(member, desiredRole).complete();
+            guild.addRoleToMember(member, desiredRole).complete();
 
             channel.sendMessage(
                     Replace.replaceString(

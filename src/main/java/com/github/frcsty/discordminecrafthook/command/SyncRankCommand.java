@@ -12,18 +12,15 @@ import me.mattstudios.mf.annotations.Command;
 import me.mattstudios.mf.annotations.Default;
 import me.mattstudios.mf.annotations.Permission;
 import me.mattstudios.mf.base.CommandBase;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.luckperms.api.context.ImmutableContextSet;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
-import net.luckperms.api.query.QueryOptions;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 @Command("syncrank")
@@ -70,12 +67,18 @@ public final class SyncRankCommand extends CommandBase {
                     final long groupRole = groupProvider.getLinkedGroups().get(group);
                     final Role role = guild.getRoleById(groupRole);
 
-                    if (primaryGroup.equalsIgnoreCase(group.getName()) && !member.getRoles().contains(role)) {
-                        guild.getController().addRolesToMember(member, role).complete();
-                        continue;
+                    if (primaryGroup.equalsIgnoreCase(group.getName())) {
+                        assert member != null;
+                        if (!member.getRoles().contains(role)) {
+                            assert role != null;
+                            guild.addRoleToMember(member, role).complete();
+                            continue;
+                        }
                     }
 
-                    guild.getController().removeRolesFromMember(member, role).complete();
+                    assert role != null;
+                    assert member != null;
+                    guild.removeRoleFromMember(member, role).complete();
                 }
 
                 /*
